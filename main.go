@@ -66,7 +66,7 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 		page := 0
 		if pagestr := input.Get("page"); pagestr != "" {
 			page, err = strconv.Atoi(pagestr)
-			if err == nil {
+			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("page number is not valid"))
 				return
@@ -76,7 +76,7 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 		pageLength := 10
 		if lengthstr := input.Get("length"); lengthstr != "" {
 			pageLength, err = strconv.Atoi(lengthstr)
-			if err == nil {
+			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte("page length is not valid"))
 				return
@@ -119,9 +119,13 @@ func (s *Searcher) Search(query string, page, length int) SearchResults {
 	lb := page * length
 	if lb < 0 {
 		lb = 0
+	} else if lb > len(results) {
+		lb = len(results)
 	}
 	ub := (page+1) * length
-	if ub > len(results) {
+	if ub < 0 {
+		ub = 0
+	} else if ub > len(results) {
 		ub = len(results)
 	}
 
