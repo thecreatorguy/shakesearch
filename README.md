@@ -22,3 +22,14 @@ The first things on my mind for improvements are the things mentioned in
 previous readme: the case sensitivity of the search (which proved immediately
 annoying when I tried to search "hamlet" instead of "Hamlet"), and the need
 for a complete match for searching. Later, though- it's getting late!
+
+### Entry 2- 2:49PM December 17th, 2020
+I've now done some research on suffix arrays, because previously I did not
+know how they worked. They are very cool, especially because their lookup
+efficiency is O(n) and it is in-memory! Unfortunately, it looks like they
+might not be up for the job of full text search because of its need for exact
+matches. It isn't to the word level, though- for example, "hamle", "amlet",
+and "hamlet" all return similar results- so it is probably good enough for now.
+The biggest problem I see after case insensitivity is that the entire array
+is displayed for the search, making it impossible to navigate. For this,
+the results must be paginated, so that will be my first objective.

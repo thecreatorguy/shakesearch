@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -41,18 +42,51 @@ type Searcher struct {
 	SuffixArray   *suffixarray.Index
 }
 
+type SearchResults struct {
+	Total	int 		`json:"total"`
+	Page	int 		`json:"page"`
+	Length	int			`json:"length"`
+	Results []string 	`json:"results"`
+}
+
+// handleSearch returns a search handler with the given searcher, allowing for easy dependency injection.
 func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		query, ok := r.URL.Query()["q"]
-		if !ok || len(query[0]) < 1 {
+		var err error
+
+		// Parse query
+		input := r.URL.Query()
+		query := input.Get("q")
+		if len(query) < 1 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("missing search query in URL params"))
 			return
 		}
-		results := searcher.Search(query[0])
+
+		page := 0
+		if pagestr := input.Get("page"); pagestr != "" {
+			page, err = strconv.Atoi(pagestr)
+			if err == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("page number is not valid"))
+				return
+			}
+		}
+
+		pageLength := 10
+		if lengthstr := input.Get("length"); lengthstr != "" {
+			pageLength, err = strconv.Atoi(lengthstr)
+			if err == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("page length is not valid"))
+				return
+			}
+		}
+
+		// Return results
+		results := searcher.Search(query, page, pageLength)
 		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
+		err = json.NewEncoder(buf).Encode(results)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("encoding failure"))
@@ -73,11 +107,28 @@ func (s *Searcher) Load(filename string) error {
 	return nil
 }
 
-func (s *Searcher) Search(query string) []string {
+func (s *Searcher) Search(query string, page, length int) SearchResults {
 	idxs := s.SuffixArray.Lookup([]byte(strings.ToLower(query)), -1)
 	results := []string{}
+	// TODO: change results into a more sensical solution- this cuts off words
 	for _, idx := range idxs {
 		results = append(results, s.CompleteWorks[idx-250:idx+250])
 	}
-	return results
+
+	// Compute the lower and upper bound
+	lb := page * length
+	if lb < 0 {
+		lb = 0
+	}
+	ub := (page+1) * length
+	if ub > len(results) {
+		ub = len(results)
+	}
+
+	return SearchResults{
+		Total: len(results),
+		Page: page,
+		Length: length,
+		Results: results[lb:ub],
+	}
 }
