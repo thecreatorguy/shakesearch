@@ -33,3 +33,25 @@ and "hamlet" all return similar results- so it is probably good enough for now.
 The biggest problem I see after case insensitivity is that the entire array
 is displayed for the search, making it impossible to navigate. For this,
 the results must be paginated, so that will be my first objective.
+
+### Entry 3- 5:25PM December 17th, 2020
+Pagination is now handled. As I was working on it, several new thoughts came
+to mind:
+
+1. There isn't enough information. Typically, when searching through
+Shakespeare, one would like to know certain metadata like what play it is
+from, what act, scene, and line numbers it is located at. This is a parsing
+problem, because all of that data is available in the full text, but simply
+reading the file doesn't give that to us.
+
+2. It's not pretty, obviously. My current thought is to make it look similar
+to the react prompt, but have the left side be the list of results, and the
+right side be a full preview of the selected result.
+
+3. The lack of "approximate search" is a real problem- when searching through
+Shakespeare, most people won't have already memorized Shakespeare, and most
+will probably be searching for more than just a word. How to do this while
+keeping a fast search will probably be the biggest challenge.
+
+After completing these three features, I think the project will probably
+be complete.
