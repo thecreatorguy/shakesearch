@@ -55,3 +55,12 @@ keeping a fast search will probably be the biggest challenge.
 
 After completing these three features, I think the project will probably
 be complete.
+
+### Entry 4- 12:28AM December 20th, 2020
+It's clear that the source data is unedited. There are over 30 different
+works, so I'm not going to create 30 different text files for each work,
+although that would be somewhat feasible to do. Instead, I'm going to
+use a unicode character not found in the text and place it before each
+title, and delete all meta text like copyright and table of contents-
+when searching for Shakespeare, people aren't looking for this. The
+unicode character will be "🙂", and will act as a bookmark.
