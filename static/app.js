@@ -53,7 +53,7 @@ const Controller = {
     // TODO: parse this for newlines, markdown
     const rows = [];
     for (let result of resObj.results) {
-      rows.push(`<tr>${result}<tr/>`);
+      rows.push(`<tr>${result.text}<tr/>`);
     }
 
     const table = document.getElementById("table-body");

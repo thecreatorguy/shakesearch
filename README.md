@@ -64,3 +64,30 @@ use a unicode character not found in the text and place it before each
 title, and delete all meta text like copyright and table of contents-
 when searching for Shakespeare, people aren't looking for this. The
 unicode character will be "🙂", and will act as a bookmark.
+
+### Entry 5- 1:42PM December 20th, 2020
+Now that book-level metadata is removed (while all work-level content
+is unedited, like cast and acts remain) and markers/delimiters for a
+work are added, it's time to decide how to handle full-text search.
+I found [bleve](https://blevesearch.com/), which seems to be pretty
+lightweight for this, and similar to the effects of elasticsearch.
+
+The way these technologies work is they analyze the text within discrete
+*documents*, which means that I would not be able to just use the complete
+works text- it would have to be broken up. I think the best way to do this
+is with some intelligent splitting of lines to create something like a
+"page". If the text searched is across multiple pages, then I might need
+to duplicate pages- for example, looking at pages 1 and 2 of a book, I
+could index pages 1, 2, and the "page" that is the text from halfway down
+the first to halfway down the second.
+
+Onto the intelligent splitting part. Most of Shakespeare's works are in
+the format of a play, and seem to be of one of two different formats.
+The first feels more standard- the speaker is on one line, in all capital
+letters, followed by a period, then the content of their speech is on the
+lines following. The second format feels a bit different- The speaker
+is on an unindented line, immediately preceding the content of the speech,
+which continues indented until the next speaker on an unindented line.
+There are several exceptions, like the sonnets and several works at the
+end, but this is the majority, so I will begin with one of these as a test,
+probably the first.
