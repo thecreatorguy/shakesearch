@@ -23,6 +23,7 @@ func main() {
 	http.Handle("/", fs)
 
 	http.HandleFunc("/search", handleSearch(searcher))
+	http.HandleFunc("/preview", handlePreview(searcher))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -73,7 +74,6 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 		// Return results
 		results, err := searcher.Search(query, page, pageLength)
 		if err != nil {
-			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("query failure"))
 			return
@@ -81,6 +81,41 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 
 		buf := &bytes.Buffer{}
 		err = json.NewEncoder(buf).Encode(results)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("encoding failure"))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(buf.Bytes())
+	}
+}
+
+// Preview is the struct that returns the preview of a given id in the preview handler
+type Preview struct {
+	Preview string `json:"preview"`
+}
+
+func handlePreview(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := r.URL.Query()
+		id := input.Get("id")
+		if len(id) < 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("missing search query in URL params"))
+			return
+		}
+
+		// Return results
+		preview, err := searcher.Preview(id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("query failure"))
+			return
+		}
+
+		buf := &bytes.Buffer{}
+		err = json.NewEncoder(buf).Encode(Preview{preview})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("encoding failure"))

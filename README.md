@@ -91,3 +91,14 @@ which continues indented until the next speaker on an unindented line.
 There are several exceptions, like the sonnets and several works at the
 end, but this is the majority, so I will begin with one of these as a test,
 probably the first.
+
+### Entry 6: 9:19PM December 20th, 2020
+I decided to break the text into "blocks"- the unbroken section that is
+usually of the form speaker-newline-text- and search on that. I would
+guess that the vast majority of searches are for phrases that have been
+spoken by a character no more than that. Now, the full text searching is
+done.
+
+The last thing I want to do is add the preview function to the backend,
+which will stitch together the blocks to create a full page-length
+preview, which will add context to the result.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -20,9 +21,12 @@ const (
 	MaxPageLength = 30
 )
 
+var headerBlockRe = regexp.MustCompile(`\n[A-Z.,1-9 ]+\n`)
+
 // Searcher stores the intelligently separated text of Shakespeare for searching
 type Searcher struct {
 	Index bleve.Index
+	WorkLengths map[string]int
 }
 
 // ShakeDocument is a single document from the works of Shakespeare, which should
@@ -30,7 +34,6 @@ type Searcher struct {
 type ShakeDocument struct {
 	Work string `json:"work"`
 	Text string `json:"text"`
-	Lines int `json:"lines"`
 }
 
 // SearchResult is a single result from the search function
@@ -60,9 +63,6 @@ func (s *Searcher) Load(filename string) error {
 	docMapping := bleve.NewDocumentStaticMapping()
 	docMapping.AddFieldMappingsAt("work", bleve.NewTextFieldMapping())
 	docMapping.AddFieldMappingsAt("text", bleve.NewTextFieldMapping())
-	linesMapping := bleve.NewNumericFieldMapping()
-	linesMapping.Index = false
-	docMapping.AddFieldMappingsAt("lines", linesMapping)
 
 	idxMapping := bleve.NewIndexMapping()
 	idxMapping.DefaultMapping = docMapping
@@ -87,9 +87,9 @@ func (s *Searcher) Load(filename string) error {
 	// group of text that has a header line.
 	var wg sync.WaitGroup
 	wg.Add(len(works))
-	headerBlockRe := regexp.MustCompile(`\n[A-Z.,1-9 ]+\n`)
-	nonEmptyNewlineRe := regexp.MustCompile(`\n\s*`)
 	batches := make([]*bleve.Batch, len(works))
+	s.WorkLengths = make(map[string]int)
+	var mu sync.Mutex
 	for i, w := range works {
 		go func(i int, w string) {
 			defer wg.Done()
@@ -109,7 +109,6 @@ func (s *Searcher) Load(filename string) error {
 				batches[i].Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
 					Work: string(title),
 					Text: block,
-					Lines: len(nonEmptyNewlineRe.FindAllStringIndex(block, -1)) + 1,
 				})
 				j++
 			}
@@ -117,8 +116,10 @@ func (s *Searcher) Load(filename string) error {
 			batches[i].Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
 				Work: string(title),
 				Text: block,
-				Lines: len(nonEmptyNewlineRe.FindAllStringIndex(block, -1)) + 1,
 			})
+			mu.Lock()
+			s.WorkLengths[string(title)] = j + 1
+			mu.Unlock()
 		}(i, w)
 	}
 	wg.Wait()
@@ -145,6 +146,7 @@ func (s *Searcher) Search(query string, page, length int) (SearchResults, error)
 		return SearchResults{}, err
 	}
 
+	// Increase fuzziness as results are not found
 	if r.Total == 0 {
 		q.SetFuzziness(1)
 		r, err = s.Index.Search(search)
@@ -182,4 +184,59 @@ func (s *Searcher) Search(query string, page, length int) (SearchResults, error)
 		Length: length,
 		Results: results,
 	}, nil
+}
+
+// Preview gets the preview of a document by its ID, including surrounding text, padding
+// the preview to at least 30 lines
+func (s *Searcher) Preview(id string) (string, error) {
+	split := strings.Split(id, "-")
+	work := strings.Join(split[:len(split)-1], "-")
+	i, err := strconv.Atoi(split[len(split)-1])
+	if err != nil {
+		return "", err
+	}
+
+	preview, err := s.GetDocumentText(id)
+	if err != nil {
+		return "", err
+	}
+	
+	lb := i-1
+	ub := i+1
+	for strings.Count(preview, "\n") < MaxPageLength {
+		if lb >= 0 {
+			prevBlock, err := s.GetDocumentText(fmt.Sprintf("%v-%v", work, lb))
+			if err != nil {
+				return "", err
+			}
+			preview = prevBlock + "\n" + preview
+			lb--
+		}
+
+		if ub < s.WorkLengths[work] && strings.Count(preview, "\n") < MaxPageLength {
+			nextBlock, err := s.GetDocumentText(fmt.Sprintf("%v-%v", work, ub))
+			if err != nil {
+				return "", err
+			}
+			preview = nextBlock + "\n" + preview
+			ub++
+		}
+	}
+
+	return preview, nil
+}
+
+// GetDocumentText gets the text of a document by its ID
+func (s *Searcher) GetDocumentText(id string) (string, error) {
+	d, err := s.Index.Document(id)
+	if err != nil {
+		return "", err
+	}
+	for _, f := range d.Fields {
+		if f.Name() == "text" {
+			return string(f.Value()), nil
+		}
+	}
+
+	return "", nil
 }

@@ -11,7 +11,6 @@ const Controller = {
       length: Controller.pageLength,
     }).map(([key, val]) => `${key}=${val}`).join("&");
 
-    console.log(params)
     const response = fetch(`/search?${params}`).then((response) => {
       response.json().then((results) => {
         Controller.updateResults(results);
@@ -51,12 +50,21 @@ const Controller = {
     // TODO: parse this for newlines, markdown
     const rows = [];
     for (let result of resObj.results) {
-      rows.push(`<tr><td>${result.work}</td><td>${result.fragments.join(' ... ')}</td></tr>`);
+      rows.push(`<tr><td>${result.work}</td><td onclick="Controller.preview('${result.id}');">${result.fragments.join(' ... ')}</td></tr>`);
     }
 
     const table = document.getElementById("table-body");
     table.innerHTML = `<tr><th>Work</th><th>Result</th></tr>${rows.join('')}`;
   },
+
+  preview: (id) => {
+    const response = fetch(`/preview?id=${id}`).then((response) => {
+      response.json().then((results) => {
+        console.log(results);
+        document.getElementById("preview").innerText = results.preview;
+      });
+    });
+  }
 };
 
 Controller.query = ""
