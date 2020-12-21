@@ -51,17 +51,22 @@ type Searcher struct {
 }
 
 type ShakeDocument struct {
-	ID string `json:"id"`
 	Work string `json:"work"`
 	Text string `json:"text"`
 	Lines int `json:"lines"`
+}
+
+type SearchResult struct {
+	ID string `json:"id"`
+	Fragments []string `json:"fragments"`
+	ShakeDocument
 }
 
 type SearchResults struct {
 	Total	int 			`json:"total"`
 	Page	int 			`json:"page"`
 	Length	int				`json:"length"`
-	Results []ShakeDocument `json:"results"`
+	Results []SearchResult	`json:"results"`
 }
 
 // handleSearch returns a search handler with the given searcher, allowing for easy dependency injection.
@@ -194,33 +199,50 @@ func (s *Searcher) Load(filename string) error {
 func (s *Searcher) Search(query string, page, length int) (SearchResults, error) {
 	// Construct the query- the match query has fuzziness embedded
 	q := bleve.NewMatchQuery(query)
-	q.SetFuzziness(2)
 	q.SetField("text")
 	search := bleve.NewSearchRequestOptions(q, length, page*length, false)
 	search.Fields = []string{"*"}
+	search.Highlight = bleve.NewHighlightWithStyle("html") // html.Name
 	r, err := s.Index.Search(search)
 	if err != nil {
 		return SearchResults{}, err
 	}
 
+	if r.Total == 0 {
+		q.SetFuzziness(1)
+		r, err = s.Index.Search(search)
+		if err != nil {
+			return SearchResults{}, err
+		}
+
+		if r.Total == 0 {
+			q.SetFuzziness(2)
+			r, err = s.Index.Search(search)
+			if err != nil {
+				return SearchResults{}, err
+			}
+		}
+	}
+
 	// Convert the results to the ShakeSearch result form
-	documents := make([]ShakeDocument, len(r.Hits))
+	results := make([]SearchResult, len(r.Hits))
 	for i, h := range r.Hits {
 		temp, err := json.Marshal(h.Fields)
 		if err != nil {
 			return SearchResults{}, err
 		}
-		err = json.Unmarshal(temp, &documents[i])
+		err = json.Unmarshal(temp, &results[i])
 		if err != nil {
 			return SearchResults{}, err
 		}
-		documents[i].ID = h.ID
+		results[i].ID = h.ID
+		results[i].Fragments = h.Fragments["text"]
 	}
 
 	return SearchResults{
 		Total: int(r.Total),
 		Page: page,
 		Length: length,
-		Results: documents,
+		Results: results,
 	}, nil
 }
