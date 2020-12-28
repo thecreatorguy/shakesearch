@@ -2,16 +2,17 @@ const Controller = {
   search: (opts) => {
     // Parse options
     Object.assign(Controller, opts)
+    document.getElementById("main").classList.add("searched");
 
     document.getElementById("search-results").style.display = "initial";
 
     const params = Object.entries({
       q: Controller.query,
       page: Controller.page,
-      length: Controller.pageLength,
+      length: 8,
     }).map(([key, val]) => `${key}=${val}`).join("&");
 
-    const response = fetch(`/search?${params}`).then((response) => {
+    fetch(`/search?${params}`).then((response) => {
       response.json().then((results) => {
         Controller.updateResults(results);
       });
@@ -47,7 +48,6 @@ const Controller = {
     }
 
     // Render the results
-    // TODO: parse this for newlines, markdown
     const rows = [];
     for (let result of resObj.results) {
       rows.push(`<tr><td>${result.work}</td><td onclick="Controller.preview('${result.id}');">${result.fragments.join(' ... ')}</td></tr>`);
@@ -58,15 +58,13 @@ const Controller = {
   },
 
   preview: (id) => {
-    const response = fetch(`/preview?id=${id}`).then((response) => {
+    fetch(`/preview?id=${id}`).then((response) => {
       response.json().then((results) => {
-        console.log(results);
         document.getElementById("preview").innerText = results.preview;
       });
     });
   }
 };
-
 Controller.query = ""
 Controller.page = 0
 Controller.pageLength = 10

@@ -6,24 +6,35 @@
   <title>ShakeSearch</title>
   <link rel="stylesheet" href="style.css">
   <meta name="theme-color" content="#fafafa">
+  <script src="https://kit.fontawesome.com/692d0a4337.js" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital@0;1&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <p>
-    <form id="form">
-      <label for="query">Query</label>
-      <input type="text" id="query" name="query">
-      <button type="submit">Search</button>
-    </form>
-  </p>
-  <div id="search-results">
-    <span>Page</span>
-    <div id="page-controls"></div>
-    <table id="table">
-      <tbody id="table-body"></tbody>
-    </table>
-  </div>
-  <div id="preview"></div>
+  <main id="main">
+    <div id="grid">
+      <div id="search-container">
+        <div id="search">
+          <form id="form">
+            <i class="fas fa-search"></i>
+            <input type="text" id="query" name="query" placeholder="What art thee looking f'r?">
+            <button type="submit"><i class="fas fa-arrow-right"></i></button>
+          </form>
+          <img id="search-underline" src="search-underline.png" width=500px>
+        </div>
+      </div>
+      <div id="preview"></div>
+      <div id="search-results">
+        <span>Page</span>
+        <div id="page-controls"></div>
+        <table id="table">
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <img id="shakespeare" src="shakespeare.png">
+  </main>
   <script src="app.js"></script>
 </body>
 

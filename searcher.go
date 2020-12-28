@@ -18,7 +18,7 @@ const (
 	TitleMarker = "🙂"
 
 	// MaxPageLength is the maximum number of lines to return as a page
-	MaxPageLength = 30
+	MaxPageLength = 25
 )
 
 var headerBlockRe = regexp.MustCompile(`\n[A-Z.,1-9 ]+\n`)
