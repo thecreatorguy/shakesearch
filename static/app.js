@@ -1,3 +1,22 @@
+function markdownItalics(text) {
+  let parts = text.split('_');
+  let ret = parts[0];
+  let i = 1;
+  for (; i < parts.length; i++) {
+    if (i % 2 == 1) {
+      ret += '<em>';
+    } else {
+      ret += '</em>';
+    }
+    ret += parts[i];
+  }
+  if (i % 2 == 0) {
+    ret += '</em>';
+  }
+
+  return ret;
+}
+
 const Controller = {
   search: (opts) => {
     // Parse options
@@ -9,7 +28,7 @@ const Controller = {
     const params = Object.entries({
       q: Controller.query,
       page: Controller.page,
-      length: 8,
+      length: 6,
     }).map(([key, val]) => `${key}=${val}`).join("&");
 
     fetch(`/search?${params}`).then((response) => {
@@ -22,7 +41,7 @@ const Controller = {
   updateResults: (resObj) => {
 
     // Add the pagination results
-    const pageControls = document.getElementById("page-controls");
+    const pageControls = document.getElementById("page-buttons");
     pageControls.innerHTML = "";
 
     maxPage = Math.floor(resObj.total / resObj.length);
@@ -48,19 +67,31 @@ const Controller = {
     }
 
     // Render the results
-    const rows = [];
-    for (let result of resObj.results) {
-      rows.push(`<tr><td>${result.work}</td><td onclick="Controller.preview('${result.id}');">${result.fragments.join(' ... ')}</td></tr>`);
-    }
-
     const table = document.getElementById("table-body");
-    table.innerHTML = `<tr><th>Work</th><th>Result</th></tr>${rows.join('')}`;
+    table.innerHTML = '<tr><th>Work</th><th>Result</th><th></th></tr>';
+    for (let result of resObj.results) {
+      let row = document.createElement('tr');
+      let work = document.createElement('td');
+      work.innerHTML = result.work;
+      row.append(work);
+      let fragment = document.createElement('td');
+      fragment.innerHTML = markdownItalics(result.fragments.join(' ... '));
+      fragment.addEventListener('click', _ => Controller.preview(result.id));
+      row.append(fragment);
+      let preview = document.createElement('td');
+      let previewButton = document.createElement('button');
+      previewButton.innerText = "Preview";
+      previewButton.addEventListener('click', _ => Controller.preview(result.id));
+      preview.append(previewButton);
+      row.append(preview);
+      table.append(row);
+    }
   },
 
   preview: (id) => {
     fetch(`/preview?id=${id}`).then((response) => {
       response.json().then((results) => {
-        document.getElementById("preview").innerText = results.preview;
+        document.getElementById("preview").innerHTML = markdownItalics(results.preview);
       });
     });
   }

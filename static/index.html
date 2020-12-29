@@ -13,11 +13,12 @@
 
 <body>
   <main id="main">
+    <div id="logo">Shakesearch</div>
     <div id="grid">
       <div id="search-container">
         <div id="search">
           <form id="form">
-            <i class="fas fa-search"></i>
+            <div><i class="fas fa-search"></i></div>
             <input type="text" id="query" name="query" placeholder="What art thee looking f'r?">
             <button type="submit"><i class="fas fa-arrow-right"></i></button>
           </form>
@@ -25,12 +26,14 @@
         </div>
       </div>
       <div id="preview"></div>
-      <div id="search-results">
-        <span>Page</span>
-        <div id="page-controls"></div>
+      <div id="search-results">        
         <table id="table">
           <tbody id="table-body"></tbody>
         </table>
+        <div id="page-controls">
+          <span>Page:</span>
+          <div id="page-buttons"></div>
+        </div>
       </div>
     </div>
     <img id="shakespeare" src="shakespeare.png">
