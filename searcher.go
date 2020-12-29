@@ -104,7 +104,7 @@ func (s *Searcher) Load(filename string) error {
 			j := 0
 			for _, idx := range indices {
 				// Strip off the starting newline
-				block := w[startIdx:idx[0]-1]
+				block := w[startIdx:idx[0]]
 				startIdx = idx[0] + 1
 				batches[i].Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
 					Work: string(title),
