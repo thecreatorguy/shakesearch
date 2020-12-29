@@ -11,7 +11,7 @@ more involved with (React). Pulley, if this ever sees your eyes, thank
 you for this opportunity!
 
 ## To Run
-`make run` in the cloned repository, or look at the live example on (heroku)[https://shakesearch-tim.herokuapp.com/]
+`make run` in the cloned repository, or look at the live example on [heroku](https://shakesearch-tim.herokuapp.com/)
 
 ## Plan
 This readme will be a full document of my thought processes and planning-
