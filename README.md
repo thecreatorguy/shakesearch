@@ -10,6 +10,9 @@ skills (Go) and also learn more about the technologies I want to become
 more involved with (React). Pulley, if this ever sees your eyes, thank
 you for this opportunity!
 
+## To Run
+`make run` in the cloned repository
+
 ## Plan
 This readme will be a full document of my thought processes and planning-
 none if it will be edited, only new entries will be added, so as to see
@@ -102,3 +105,26 @@ done.
 The last thing I want to do is add the preview function to the backend,
 which will stitch together the blocks to create a full page-length
 preview, which will add context to the result.
+
+### Entry 7: 8:09PM December 28th, 2020
+The front-end is done. I went with pure html, css, and javascript for
+this, so the javascript end was a bit clunky, although the css was
+obviously what took the most time. If I were to do it again, I would
+use Sass like I did for my website.
+
+I'm done with the project- I think it's in its MVP state. Full text
+search, pagination, decent styling, and previews are all included.
+If I were to work more on this, I would add more styling to the previews
+to bold the headers of any section, I would add css styles for more
+variable width displays (phones are lacking), and I would do more
+parsing of the text for the works that are in different formats than
+the one format that I decided to use. I would parse for act, scene, and
+line numbers to display in the table. I would allow the text to be
+searched by work as well. After those things, I think that the project
+would be nearly feature-complete.
+
+In total, it probably took me around 10-11 hours of work for the backend,
+and 8-9 hours for the frontend. A decently sized project, although most
+of the time spent was either on learning/researching/designing how to 
+implement full text search for the backend, and the frontend was mostly
+wrestling with CSS (does that ever get easier? lol).
