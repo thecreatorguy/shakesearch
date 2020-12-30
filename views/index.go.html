@@ -1,10 +1,11 @@
+{{define "index" -}}
 <!doctype html>
 <html class="no-js" lang="">
 
 <head>
   <meta charset="utf-8">
   <title>ShakeSearch</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="{{.AssetsPrefix}}/style.css">
   <meta name="theme-color" content="#fafafa">
   <script src="https://kit.fontawesome.com/692d0a4337.js" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -22,7 +23,7 @@
             <input type="text" id="query" name="query" placeholder="What art thee looking f'r?">
             <button type="submit"><i class="fas fa-arrow-right"></i></button>
           </form>
-          <img id="search-underline" src="search-underline.png" width=500px>
+          <img id="search-underline" src="{{.AssetsPrefix}}/search-underline.png" width=500px>
         </div>
       </div>
       <div id="preview"></div>
@@ -36,9 +37,10 @@
         </div>
       </div>
     </div>
-    <img id="shakespeare" src="shakespeare.png">
+    <img id="shakespeare" src="{{.AssetsPrefix}}/shakespeare.png">
   </main>
-  <script src="app.js"></script>
+  <script src="{{.AssetsPrefix}}/app.js"></script>
 </body>
 
 </html>
+{{- end}}

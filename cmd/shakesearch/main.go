@@ -22,7 +22,7 @@ func main() {
 	}
 	fmt.Println("Loaded!")
 
-	shakesearch.AddRoutes(r, searcher, "./static")
+	shakesearch.AddRoutes(r, searcher, "./views/index.go.html", "/", "/assets/", "./static")
 
 	port := os.Getenv("PORT")
 	if port == "" {
