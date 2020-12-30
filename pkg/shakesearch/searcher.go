@@ -89,9 +89,10 @@ func (s *Searcher) Load(filename string) error {
 	// On each work, concurrently generate documents that are separated by "block", or a
 	// group of text that has a header line.
 	s.WorkLengths = make(map[string]int)
-	for _, w := range works {
+	for i, w := range works {
 		batch := index.NewBatch()
 		_, title, _ := bufio.ScanLines([]byte(w), false)
+		fmt.Println(fmt.Sprintf("%v: %v", i, title))
 		
 		indices := headerBlockRe.FindAllStringIndex(w, -1)
 		startIdx := 0
