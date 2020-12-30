@@ -1,40 +1,24 @@
-package main
+package shakesearch
 
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
-func main() {
-	searcher := Searcher{}
-	fmt.Println("Loading in the works of Shakespeare!..")
-	err := searcher.Load("completeworks.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Loaded!")
-
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
-
-	http.HandleFunc("/search", handleSearch(searcher))
-	http.HandleFunc("/preview", handlePreview(searcher))
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3001"
-	}
-
-	fmt.Printf("Listening on port %s...", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+// AddRoutes adds the shakesearch web routes to the given router, searching through the works of
+// Shakespeare with the given searcher, and with the static files located at the given path.
+// NOTE: I don't currently know what the best way to add static files to a project like this is,
+// so my plan is to import the project as a git module and then link the files in directly by
+// that path, and the searcher can be loaded through the same technique.
+func AddRoutes(r *mux.Router, searcher Searcher, assetsDir string) {
+	r.HandleFunc("/search", handleSearch(searcher)).Methods("GET")
+	r.HandleFunc("/preview", handlePreview(searcher)).Methods("GET")
+	fs := http.FileServer(http.Dir(assetsDir))
+	r.PathPrefix("/").Handler(fs)
 }
 
 // handleSearch returns a search handler with the given searcher, allowing for easy dependency injection.

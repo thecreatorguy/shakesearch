@@ -1,7 +1,7 @@
-.PHONY: run
+.PHONY: run shakesearch
 
-shakesearch: searcher.go main.go
-	go build -o shakesearch *.go
+shakesearch: 
+	go build -o build ./...
 
 run: shakesearch
-	./shakesearch
+	build/shakesearch

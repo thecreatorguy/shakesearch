@@ -1,4 +1,4 @@
-package main
+package shakesearch
 
 import (
 	"bufio"
