@@ -17,6 +17,8 @@ function markdownItalics(text) {
   return ret;
 }
 
+const BASE_URL = JSON.parse(document.getElementById('base-url').innerHTML).BASE_URL
+
 const Controller = {
   search: (opts) => {
     // Parse options
@@ -31,7 +33,7 @@ const Controller = {
       length: 6,
     }).map(([key, val]) => `${key}=${val}`).join("&");
 
-    fetch(`/search?${params}`).then((response) => {
+    fetch(`${BASE_URL}/search?${params}`).then((response) => {
       response.json().then((results) => {
         Controller.updateResults(results);
       });
@@ -89,7 +91,7 @@ const Controller = {
   },
 
   preview: (id) => {
-    fetch(`/preview?id=${id}`).then((response) => {
+    fetch(`${BASE_URL}/preview?id=${id}`).then((response) => {
       response.json().then((results) => {
         document.getElementById("preview").innerHTML = markdownItalics(results.preview);
       });

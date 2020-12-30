@@ -16,20 +16,23 @@ import (
 // NOTE: I don't currently know what the best way to add static files to a project like this is,
 // so my plan is to import the project as a git module and then link the files in directly by
 // that path, and the searcher can be loaded through the same technique.
-func AddRoutes(r *mux.Router, searcher Searcher, indexTemplatePath, rootPath, assetsPrefix, assetsDir string) {
-	fs := http.StripPrefix(assetsPrefix, http.FileServer(http.Dir(assetsDir)))
-	r.PathPrefix(assetsPrefix).Handler(fs)
+func AddRoutes(r *mux.Router, searcher Searcher, indexTemplateFile, assetsDir, baseURL, rootPath, assetsPrefix string) {
+	fs := http.StripPrefix(baseURL + assetsPrefix, http.FileServer(http.Dir(assetsDir)))
+	r.PathPrefix(baseURL + assetsPrefix).Handler(fs)
 
-	r.HandleFunc(rootPath, handleRoot(indexTemplatePath, assetsPrefix)).Methods("GET")
-	r.HandleFunc("/search", handleSearch(searcher)).Methods("GET")
-	r.HandleFunc("/preview", handlePreview(searcher)).Methods("GET")
+	r.HandleFunc(baseURL + rootPath, handleRoot(indexTemplateFile, baseURL, assetsPrefix)).Methods("GET")
+	r.HandleFunc(baseURL + "/search", handleSearch(searcher)).Methods("GET")
+	r.HandleFunc(baseURL + "/preview", handlePreview(searcher)).Methods("GET")
 }
 
 // handleRoot returns a handler that returns the index page with the correct assets path filled in
-func handleRoot(indexTemplatePath, assetsPrefix string) func(w http.ResponseWriter, r *http.Request) {
+func handleRoot(indexTemplateFile, baseURL, assetsPrefix string) func(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
-	pageTemplate := template.Must(template.ParseFiles(indexTemplatePath))
-	err := pageTemplate.ExecuteTemplate(&buf, "index", struct{AssetsPrefix string}{assetsPrefix})
+	pageTemplate := template.Must(template.ParseFiles(indexTemplateFile))
+	err := pageTemplate.ExecuteTemplate(&buf, "index", struct{BaseURL string; AssetsPrefix string}{
+		baseURL, 
+		baseURL + assetsPrefix,
+	})
 	if err != nil {
 		log.Fatal(err)
 		return nil
