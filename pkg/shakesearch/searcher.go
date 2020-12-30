@@ -67,7 +67,7 @@ func (s *Searcher) Load(filename string) error {
 	idxMapping := bleve.NewIndexMapping()
 	idxMapping.DefaultMapping = docMapping
 
-	index, err := bleve.NewMemOnly(idxMapping)
+	index, err := bleve.New("./searchindex", idxMapping)
 	if err != nil {
 		return err
 	}
@@ -119,17 +119,22 @@ func (s *Searcher) Load(filename string) error {
 			})
 			mu.Lock()
 			s.WorkLengths[string(title)] = j + 1
+			err = index.Batch(batches[i])
+			if err != nil {
+				panic(err)
+			}
 			mu.Unlock()
 		}(i, w)
 	}
 	wg.Wait()
 
-	// I don't believe that the index is thread safe, so batch everything at once.
-	combined := index.NewBatch()
-	for _, b := range batches {
-		combined.Merge(b)
-	}
-	return index.Batch(combined)
+	// // I don't believe that the index is thread safe, so batch everything at once.
+	// combined := index.NewBatch()
+	// for _, b := range batches {
+	// 	combined.Merge(b)
+	// }
+	// return index.Batch(combined)
+	return nil
 }
 
 // Search searches through the internal contents for the given query, returning
