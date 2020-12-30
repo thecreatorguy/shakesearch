@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/blevesearch/bleve"
 )
@@ -57,6 +57,9 @@ type SearchResults struct {
 // be produced are each full "blocks" of text, which at the moment are sections
 // of text that are preceded by a header of a character name, act, etc.
 func (s *Searcher) Load(filename string) error {
+	if _, err := os.Stat("./searchindex"); !os.IsNotExist(err) {
+		os.RemoveAll("./searchindex")
+	}
 	// Create the index meant to store the ShakeDocument structs. Static mapping ensures
 	// that only the data we want is present and stored. To preserve the original format,
 	// this index is created in-memory
@@ -85,55 +88,36 @@ func (s *Searcher) Load(filename string) error {
 
 	// On each work, concurrently generate documents that are separated by "block", or a
 	// group of text that has a header line.
-	var wg sync.WaitGroup
-	wg.Add(len(works))
-	batches := make([]*bleve.Batch, len(works))
 	s.WorkLengths = make(map[string]int)
-	var mu sync.Mutex
-	for i, w := range works {
-		go func(i int, w string) {
-			defer wg.Done()
-			batches[i] = index.NewBatch()
-			_, title, _ := bufio.ScanLines([]byte(w), false)
-			// if err != nil {
-			// 	return err
-			// }
-			
-			indices := headerBlockRe.FindAllStringIndex(w, -1)
-			startIdx := 0
-			j := 0
-			for _, idx := range indices {
-				// Strip off the starting newline
-				block := w[startIdx:idx[0]]
-				startIdx = idx[0] + 1
-				batches[i].Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
-					Work: string(title),
-					Text: block,
-				})
-				j++
-			}
-			block := w[startIdx:]
-			batches[i].Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
+	for _, w := range works {
+		batch := index.NewBatch()
+		_, title, _ := bufio.ScanLines([]byte(w), false)
+		
+		indices := headerBlockRe.FindAllStringIndex(w, -1)
+		startIdx := 0
+		j := 0
+		for _, idx := range indices {
+			// Strip off the starting newline
+			block := w[startIdx:idx[0]]
+			startIdx = idx[0] + 1
+			batch.Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
 				Work: string(title),
 				Text: block,
 			})
-			mu.Lock()
-			s.WorkLengths[string(title)] = j + 1
-			err = index.Batch(batches[i])
-			if err != nil {
-				panic(err)
-			}
-			mu.Unlock()
-		}(i, w)
+			j++
+		}
+		block := w[startIdx:]
+		batch.Index(fmt.Sprintf("%s-%v", title, j), ShakeDocument{
+			Work: string(title),
+			Text: block,
+		})
+		s.WorkLengths[string(title)] = j + 1
+		err = index.Batch(batch)
+		if err != nil {
+			return err
+		}
 	}
-	wg.Wait()
 
-	// // I don't believe that the index is thread safe, so batch everything at once.
-	// combined := index.NewBatch()
-	// for _, b := range batches {
-	// 	combined.Merge(b)
-	// }
-	// return index.Batch(combined)
 	return nil
 }
 
